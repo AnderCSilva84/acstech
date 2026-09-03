@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">ACS Tecnologia</title>
+  <defs>
+    <linearGradient id="acs-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7AF0CD"/>
+      <stop offset="1" stop-color="#20B992"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="#0A1722"/>
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="16.25" fill="none" stroke="#60E6BD" stroke-opacity=".55" stroke-width="1.5"/>
+  <path d="M15 45.5 28.2 17h7.5L49 45.5h-7.3l-2.8-6.3H25l-2.8 6.3H15Zm12.7-12.4h8.5L32 23.4l-4.3 9.7Z" fill="url(#acs-gradient)"/>
+  <path d="M42.5 17.5h6v6" fill="none" stroke="#7AF0CD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48.5" cy="17.5" r="2.5" fill="#7AF0CD"/>
+  <circle cx="49" cy="45.5" r="2.5" fill="#20B992"/>
+</svg>

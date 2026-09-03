@@ -1,0 +1,5 @@
+import type { Config, Context } from '@netlify/functions';
+import { adminSession,json } from './_shared/core';
+const attempts=new Map<string,{count:number;until:number}>();
+export default async(req:Request,context:Context)=>{if(req.method==='DELETE')return json({ok:true},200,{'set-cookie':'acs_admin_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'});if(req.method!=='POST')return json({error:'Método não permitido.'},405);const ip=context.ip||'unknown';const state=attempts.get(ip);if(state&&state.until>Date.now())return json({error:'Muitas tentativas. Aguarde 15 minutos.'},429);const {pin}=await req.json();const expected=Netlify.env.get('ADMIN_LOGIN_PIN');if(!expected||String(pin)!==expected){const count=(state?.count||0)+1;attempts.set(ip,{count,until:count>=5?Date.now()+15*60*1000:0});return json({error:'PIN administrativo inválido.'},401)}attempts.delete(ip);const session=await adminSession();return json({ok:true},200,{'set-cookie':`acs_admin_session=${session}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`})};
+export const config:Config={path:'/api/portal/admin-session'};

@@ -1,0 +1,2 @@
+import { render,screen } from '@testing-library/react'; import { MemoryRouter } from 'react-router-dom'; import { describe,expect,it } from 'vitest'; import { ProjectCard } from './UI'; import { projects } from '../data/projects';
+describe('ProjectCard',()=>{it('apresenta dados e link do projeto',()=>{render(<MemoryRouter><ProjectCard project={projects[0]}/></MemoryRouter>);expect(screen.getByRole('heading',{name:'ARTRAN'})).toBeInTheDocument();expect(screen.getByRole('link',{name:/conhecer projeto/i})).toHaveAttribute('href','/projetos/artran')})});

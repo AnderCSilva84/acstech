@@ -1,0 +1,2 @@
+import { ArrowLeft } from 'lucide-react'; import { Link } from 'react-router-dom'; import { Seo } from '../components/Seo';
+export default function NotFound(){return <section className="not-found"><Seo title="Página não encontrada" description="Esta rota ainda não entrou em produção."/><span>404</span><h1>Essa rota ainda não entrou em produção.</h1><p>O caminho pode ter mudado ou ainda estar no backlog.</p><Link className="button" to="/"><ArrowLeft/> Voltar para a ACS</Link></section>}
