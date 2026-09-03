@@ -5,17 +5,23 @@ export default async(req:Request)=>{
   if(!await adminAllowed(req)) return json({error:'Acesso negado.'},401);
   if(req.method==='GET') {
     const records=await listJSON<Client>('clients/id-');
-    return json({clients:records.map(client=>({id:client.id,name:client.name,phone:client.phone,active:client.active}))});
+    return json({clients:records.map(client=>({id:client.id,name:client.name,phone:client.phone,personType:client.personType,document:client.document,establishments:client.establishments||[],active:client.active}))});
   }
   if(req.method!=='POST') return json({error:'Método não permitido'},405);
   const body=await req.json();
   if(body.action==='client') {
     const phone=normalizePhone(body.phone||'');
-    if(!/^\d{10,11}$/.test(phone)||!/^\d{4}$/.test(body.pin||'')) return json({error:'Informe telefone com DDD e PIN de 4 dígitos.'},400);
+    const document=normalizePhone(body.document||''); const personType=body.personType==='pj'?'pj':'pf';
+    if(!body.name?.trim()) return json({error:'Informe o nome do cliente ou responsável.'},400);
+    if(!/^\d{10,11}$/.test(phone)) return json({error:'Informe um telefone válido com DDD.'},400);
+    if(!/^\d{4}$/.test(body.pin||'')) return json({error:'O PIN do cliente deve ter exatamente 4 dígitos.'},400);
+    if((personType==='pf'&&document.length!==11)||(personType==='pj'&&document.length!==14)) return json({error:`Informe um ${personType==='pf'?'CPF':'CNPJ'} válido.`},400);
+    const establishments=personType==='pj'&&Array.isArray(body.establishments)?body.establishments.filter((item:{name?:string})=>item.name?.trim()).map((item:{name:string;system?:string})=>({id:crypto.randomUUID(),name:item.name.trim(),system:String(item.system||'').trim()})):[];
+    if(personType==='pj'&&!establishments.length) return json({error:'Cadastre pelo menos um estabelecimento da empresa.'},400);
     const id=body.id||crypto.randomUUID(); const salt=crypto.randomUUID();
-    const client:Client={id,name:String(body.name),phone,pinHash:await hashPin(body.pin,salt),salt,active:true};
+    const client:Client={id,name:String(body.name).trim(),phone,personType,document,establishments,pinHash:await hashPin(body.pin,salt),salt,active:true};
     await Promise.all([store.setJSON(`clients/phone-${phone}`,client),store.setJSON(`clients/id-${id}`,client)]);
-    return json({id,name:client.name,phone},201);
+    return json({id,name:client.name,phone,personType,document,establishments},201);
   }
   if(body.action==='charge') {
     if(!body.clientId||!body.description||Number(body.amount)<=0||!body.dueDate) return json({error:'Preencha todos os dados da cobrança.'},400);

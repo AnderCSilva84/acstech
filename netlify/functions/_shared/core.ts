@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
-export type Client = { id:string; name:string; phone:string; pinHash:string; salt:string; active:boolean };
+export type Establishment = { id:string; name:string; system:string };
+export type Client = { id:string; name:string; phone:string; personType:'pf'|'pj'; document:string; establishments:Establishment[]; pinHash:string; salt:string; active:boolean };
 export type Charge = { id:string; clientId:string; description:string; amount:number; dueDate:string; status:'pending'|'paid'|'overdue'; createdAt:string; transactionNsu?:string; receiptUrl?:string; captureMethod?:string };
 export type ServiceRequest = { id:string; clientId:string; title:string; details:string; status:'received'|'reviewing'|'approved'|'completed'; createdAt:string };
 export const store = getStore({name:'acs-client-portal',consistency:'strong'});
