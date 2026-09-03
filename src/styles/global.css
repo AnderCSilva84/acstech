@@ -108,3 +108,68 @@ footer .brand-logo-wrap{width:260px;height:116px}footer .brand-logo{width:100%;h
 .client-systems-head h2{order:2;margin:0;padding:.35rem .6rem;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
 .system-preview-grid{gap:1.15rem}
 @media(max-width:700px){.portal-heading{align-items:flex-start;padding:1.25rem}.portal-heading h1{font-size:clamp(2rem,9vw,2.8rem);padding-right:3.5rem}.portal-heading>.button{position:absolute;top:1rem;right:1rem;min-width:0;padding:.55rem .7rem}.portal-heading>.button svg{width:16px}.client-systems{padding:1rem}.client-systems-head{align-items:flex-start;flex-direction:column}}
+
+/* Alinhamento e ritmo visual do painel do cliente */
+.client-portal{
+  width:min(100%,1680px);
+  padding:clamp(2rem,4vw,4.5rem) clamp(1rem,4vw,4rem);
+}
+.portal-heading,
+.client-systems{
+  padding:clamp(1.5rem,3vw,2.5rem);
+  border-radius:22px;
+}
+.portal-heading{
+  min-height:210px;
+  margin-bottom:2.5rem;
+}
+.portal-heading .kicker{
+  font-size:clamp(1rem,1.15vw,1.15rem);
+  font-weight:800;
+  letter-spacing:.14em;
+  margin-bottom:.8rem;
+}
+.portal-heading h1{
+  font-size:clamp(2rem,2.8vw,2.9rem);
+  line-height:1.08;
+  letter-spacing:-.04em;
+}
+.portal-heading>div{
+  max-width:900px;
+}
+.portal-heading p{
+  max-width:720px;
+}
+.client-systems{
+  margin-bottom:2.5rem;
+}
+.client-systems-head{
+  margin-bottom:1.5rem;
+  padding-bottom:1.25rem;
+}
+.system-preview-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));
+  gap:1.5rem;
+}
+.system-preview-grid>article:only-child{
+  width:min(100%,920px);
+}
+.system-preview-grid>article{
+  border-radius:20px;
+}
+.system-preview-copy{
+  padding:1.25rem 1.4rem;
+}
+
+@media(max-width:700px){
+  .client-portal{padding:1.25rem 1rem 3rem}
+  .portal-heading,.client-systems{padding:1.25rem;border-radius:18px}
+  .portal-heading{min-height:auto;margin-bottom:1.25rem;padding-top:1.5rem}
+  .portal-heading>div{width:100%}
+  .portal-heading .kicker{padding-right:4rem}
+  .portal-heading h1{font-size:clamp(1.85rem,8vw,2.35rem);padding-right:0;margin-top:.35rem}
+  .portal-heading p{padding-right:0}
+  .client-systems{margin-bottom:1.25rem}
+  .client-systems-head{gap:.6rem;margin-bottom:1rem;padding-bottom:1rem}
+  .system-preview-grid{gap:1rem}
+}
