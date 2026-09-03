@@ -27,19 +27,40 @@ export default function Admin() {
 
   async function logout() { await fetch('/api/portal/admin-session',{method:'DELETE',credentials:'same-origin'}); setAuthenticated(false); }
 
-  function remove(slug:string) {
+  async function remove(slug:string) {
     if (!window.confirm('Excluir este projeto?')) return;
-    saveProjects(getProjects().filter(item => item.slug !== slug));
-    setNotice('Projeto excluído.');
+    try { await saveProjects(getProjects().filter(item => item.slug !== slug)); setNotice('Projeto excluído.'); }
+    catch(error) { setError(error instanceof Error?error.message:'Não foi possível excluir o projeto.'); }
   }
 
-  function persist(project:Project) {
-    const galleryImages=(project.galleryImages||[]).filter(Boolean).slice(0,4);
-    const normalized = {...project, slug:project.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''), projectUrl:project.projectUrl?.trim(), galleryImages, coverImage:galleryImages[0]||project.coverImage?.trim()};
-    const current = getProjects();
-    const existing = current.findIndex(item => item.slug === normalized.slug);
-    saveProjects(existing >= 0 ? current.map((item,index) => index === existing ? normalized : item) : [...current,normalized]);
-    setEditing(null); setNotice('Projeto salvo e publicado neste navegador.');
+  async function persist(project:Project) {
+    setError('');
+    try {
+      const galleryImages=await Promise.all((project.galleryImages||[]).filter(Boolean).slice(0,4).map(async image=>{
+        if(!image.startsWith('data:'))return image;
+        const response=await fetch('/api/project-media',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({data:image})});
+        const result=await response.json().catch(()=>({error:'Falha no envio da imagem.'}));
+        if(!response.ok)throw new Error(result.error||'Não foi possível enviar a imagem.');
+        return result.url as string;
+      }));
+      const normalized = {...project, slug:project.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''), projectUrl:project.projectUrl?.trim(), galleryImages, coverImage:galleryImages[0]||project.coverImage?.trim()};
+      const current = getProjects();
+      const existing = current.findIndex(item => item.slug === normalized.slug);
+      const next=existing >= 0 ? current.map((item,index) => index === existing ? normalized : item) : [...current,normalized];
+      const portable=await Promise.all(next.map(async item=>{
+        const sourceImages=item.galleryImages?.length?item.galleryImages:(item.coverImage?[item.coverImage]:[]);
+        const images=await Promise.all(sourceImages.map(async image=>{
+          if(!image.startsWith('data:'))return image;
+          const response=await fetch('/api/project-media',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({data:image})});
+          const result=await response.json().catch(()=>({error:'Falha no envio da imagem.'}));
+          if(!response.ok)throw new Error(result.error||'Não foi possível enviar uma imagem antiga.');
+          return result.url as string;
+        }));
+        return {...item,galleryImages:images,coverImage:images[0]||item.coverImage};
+      }));
+      await saveProjects(portable);
+      setEditing(null); setNotice('Projeto publicado para todos os dispositivos.');
+    } catch(error) { setError(error instanceof Error?error.message:'Não foi possível publicar o projeto.'); }
   }
 
   if (authenticated===null) return <div className="page-loader">Verificando sessão…</div>;

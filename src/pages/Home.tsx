@@ -13,7 +13,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { projects } from '../data/projects';
+import { useProjects } from '../data/projectStore';
 import { CTA, ProjectCard, Reveal, SectionHead } from '../components/UI';
 import { Seo } from '../components/Seo';
 
@@ -27,6 +27,7 @@ const services = [
 ] as const;
 
 export function Home() {
+  const projects=useProjects();
   return <>
     <Seo title="Do problema ao sistema" description="A ACS Informática cria sistemas web, PWAs e dashboards sob medida para problemas reais."/>
     <section className="hero">
