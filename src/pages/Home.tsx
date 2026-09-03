@@ -31,8 +31,8 @@ export function Home() {
     <Seo title="Do problema ao sistema" description="A ACS Informática cria sistemas web, PWAs e dashboards sob medida para problemas reais."/>
     <section className="hero">
       <div className="hero-copy">
-        <span className="kicker">Do problema ao sistema</span>
-        <h1>Processos reais.<br/><em>Soluções inteligentes.</em></h1>
+        <span className="kicker">Software sob medida</span>
+        <h1>Transformamos problemas reais em <em>sistemas inteligentes.</em></h1>
         <p>A ACS Informática projeta e desenvolve sistemas web, PWAs e plataformas sob medida para operações, empresas e pessoas.</p>
         <div className="hero-actions">
           <Link className="button" to="/projetos">Explorar projetos <ArrowRight size={17}/></Link>
