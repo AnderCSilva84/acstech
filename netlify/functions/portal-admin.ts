@@ -28,14 +28,18 @@ export default async(req:Request)=>{
   if(body.action==='client') {
     const phone=normalizePhone(body.phone||'');
     const document=normalizePhone(body.document||''); const personType=body.personType==='pj'?'pj':'pf';
+    const existing=body.id?await store.get(`clients/id-${body.id}`,{type:'json'}) as Client|null:null;
     if(!body.name?.trim()) return json({error:'Informe o nome do cliente ou responsável.'},400);
     if(!/^\d{10,11}$/.test(phone)) return json({error:'Informe um telefone válido com DDD.'},400);
-    if(!/^\d{4}$/.test(body.pin||'')) return json({error:'O PIN do cliente deve ter exatamente 4 dígitos.'},400);
+    if(!existing&&!/^\d{4}$/.test(body.pin||'')) return json({error:'O PIN do cliente deve ter exatamente 4 dígitos.'},400);
+    if(existing&&body.pin&&!/^\d{4}$/.test(body.pin)) return json({error:'O novo PIN deve ter exatamente 4 dígitos.'},400);
     if((personType==='pf'&&document.length!==11)||(personType==='pj'&&document.length!==14)) return json({error:`Informe um ${personType==='pf'?'CPF':'CNPJ'} válido.`},400);
     const establishments=personType==='pj'&&Array.isArray(body.establishments)?body.establishments.filter((item:{name?:string})=>item.name?.trim()).map((item:{name:string;system?:string;url?:string})=>({id:crypto.randomUUID(),name:item.name.trim(),system:String(item.system||'').trim(),url:String(item.url||'').trim()})):[];
     if(personType==='pj'&&!establishments.length) return json({error:'Cadastre pelo menos um estabelecimento da empresa.'},400);
-    const id=body.id||crypto.randomUUID(); const salt=crypto.randomUUID();
-    const client:Client={id,name:String(body.name).trim(),phone,personType,document,establishments,pinHash:await hashPin(body.pin,salt),salt,active:true};
+    const id=body.id||crypto.randomUUID(); const salt=body.pin||!existing?crypto.randomUUID():existing.salt;
+    const pinHash=body.pin||!existing?await hashPin(body.pin,salt):existing.pinHash;
+    const client:Client={id,name:String(body.name).trim(),phone,personType,document,establishments,pinHash,salt,active:true};
+    if(existing&&existing.phone!==phone)await store.delete(`clients/phone-${existing.phone}`);
     await Promise.all([store.setJSON(`clients/phone-${phone}`,client),store.setJSON(`clients/id-${id}`,client)]);
     return json({id,name:client.name,phone,personType,document,establishments},201);
   }
