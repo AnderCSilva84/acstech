@@ -201,3 +201,41 @@ footer .brand-logo-wrap{width:260px;height:116px}footer .brand-logo{width:100%;h
 .project-gallery img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
 .project-gallery figcaption{padding:.75rem 1rem;color:var(--muted);font-size:.78rem}
 @media(max-width:700px){.project-image-preview-grid,.project-gallery{grid-template-columns:1fr}.project-image-preview-grid .project-image-preview{grid-template-columns:90px 1fr}.project-image-preview-grid .project-image-preview .button{grid-column:1/-1;width:100%;margin:0}.project-browser iframe{height:480px}}
+
+/* Hierarquia e alinhamento da narrativa dos projetos */
+.case-story{padding-top:2rem;padding-bottom:2rem}
+.case-story>div{
+  grid-template-columns:72px minmax(0,900px);
+  justify-content:start;
+  gap:clamp(1.5rem,4vw,4.5rem);
+  padding:clamp(2.5rem,5vw,4.5rem) 0;
+}
+.case-story .story-index{
+  padding-top:.35rem;
+  font-size:.8rem;
+  font-variant-numeric:tabular-nums;
+}
+.case-story .kicker{
+  margin-bottom:.85rem;
+  font-size:.82rem;
+  letter-spacing:.16em;
+}
+.case-story h2{
+  max-width:800px;
+  margin-bottom:1rem;
+  font-size:clamp(2.25rem,4vw,3.6rem);
+  line-height:1.04;
+}
+.case-story p{
+  max-width:900px;
+  margin-bottom:0;
+  font-size:clamp(1.05rem,1.45vw,1.3rem);
+  line-height:1.65;
+}
+@media(max-width:700px){
+  .case-story{padding-top:1rem;padding-bottom:1rem}
+  .case-story>div{grid-template-columns:1fr;gap:.65rem;padding:2.25rem 0}
+  .case-story .story-index{padding:0;color:var(--accent)}
+  .case-story h2{font-size:clamp(2rem,10vw,2.7rem)}
+  .case-story p{font-size:1rem;line-height:1.65}
+}
