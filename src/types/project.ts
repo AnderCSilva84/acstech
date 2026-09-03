@@ -1,2 +1,2 @@
 export type ProjectStatus='Em produção'|'Projeto ativo'|'Em desenvolvimento'|'Projeto concluído'|'Protótipo';
-export interface Project {slug:string;name:string;eyebrow:string;category:string[];summary:string;problem:string;idea:string;solution:string;features:string[];technologies:string[];result:string;status:ProjectStatus;featured:boolean;tone:string;coverImage?:string;projectUrl?:string;}
+export interface Project {slug:string;name:string;eyebrow:string;category:string[];summary:string;problem:string;idea:string;solution:string;features:string[];technologies:string[];result:string;status:ProjectStatus;featured:boolean;tone:string;coverImage?:string;galleryImages?:string[];projectUrl?:string;}

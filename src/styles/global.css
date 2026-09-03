@@ -179,8 +179,11 @@ footer .brand-logo-wrap{width:260px;height:116px}footer .brand-logo{width:100%;h
 .project-visual.has-cover img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
 .project-image-upload input[type=file]{padding:.7rem;background:var(--surface-2)}
 .project-image-upload>small{color:var(--muted)}
+.project-image-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-top:.65rem}
 .project-image-preview{display:flex;align-items:center;gap:1rem;margin-top:.65rem;padding:.75rem;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
-.project-image-preview img{width:150px;aspect-ratio:16/9;object-fit:cover;border-radius:8px}
+.project-image-preview-grid .project-image-preview{display:grid;grid-template-columns:110px 1fr auto;margin:0}
+.project-image-preview img{width:110px;aspect-ratio:16/9;object-fit:cover;border-radius:8px}
+.project-image-preview b{font-size:.8rem}
 .project-image-preview .button{margin-left:auto}
 .project-open{margin-top:1.5rem}
 .project-home{padding-top:1rem}
@@ -192,4 +195,9 @@ footer .brand-logo-wrap{width:260px;height:116px}footer .brand-logo{width:100%;h
 .project-browser .browser-bar a svg{width:14px}
 .project-browser iframe{display:block;width:100%;height:min(68vh,720px);border:0;background:#fff}
 .embed-note{margin:.8rem 0 0;color:var(--muted);font-size:.78rem}
-@media(max-width:600px){.project-image-preview{align-items:stretch;flex-direction:column}.project-image-preview img{width:100%}.project-image-preview .button{width:100%;margin:0}.project-browser iframe{height:480px}}
+.project-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+.project-gallery.count-1{grid-template-columns:1fr}
+.project-gallery figure{overflow:hidden;margin:0;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+.project-gallery img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.project-gallery figcaption{padding:.75rem 1rem;color:var(--muted);font-size:.78rem}
+@media(max-width:700px){.project-image-preview-grid,.project-gallery{grid-template-columns:1fr}.project-image-preview-grid .project-image-preview{grid-template-columns:90px 1fr}.project-image-preview-grid .project-image-preview .button{grid-column:1/-1;width:100%;margin:0}.project-browser iframe{height:480px}}

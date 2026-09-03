@@ -5,7 +5,7 @@ import type { Project, ProjectStatus } from '../types/project';
 import { Seo } from '../components/Seo';
 
 const statuses: ProjectStatus[] = ['Em produção', 'Projeto ativo', 'Em desenvolvimento', 'Projeto concluído', 'Protótipo'];
-const blank: Project = { slug:'', name:'', eyebrow:'', category:[], summary:'', problem:'', idea:'', solution:'', features:[], technologies:[], result:'', status:'Em desenvolvimento', featured:false, tone:'#60e6bd', coverImage:'', projectUrl:'' };
+const blank: Project = { slug:'', name:'', eyebrow:'', category:[], summary:'', problem:'', idea:'', solution:'', features:[], technologies:[], result:'', status:'Em desenvolvimento', featured:false, tone:'#60e6bd', coverImage:'', galleryImages:[], projectUrl:'' };
 
 export default function Admin() {
   const projects = useProjects();
@@ -34,7 +34,8 @@ export default function Admin() {
   }
 
   function persist(project:Project) {
-    const normalized = {...project, slug:project.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''), projectUrl:project.projectUrl?.trim(), coverImage:project.coverImage?.trim()};
+    const galleryImages=(project.galleryImages||[]).filter(Boolean).slice(0,4);
+    const normalized = {...project, slug:project.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''), projectUrl:project.projectUrl?.trim(), galleryImages, coverImage:galleryImages[0]||project.coverImage?.trim()};
     const current = getProjects();
     const existing = current.findIndex(item => item.slug === normalized.slug);
     saveProjects(existing >= 0 ? current.map((item,index) => index === existing ? normalized : item) : [...current,normalized]);
@@ -48,24 +49,28 @@ export default function Admin() {
 }
 
 function ProjectEditor({project,onClose,onSave}:{project:Project;onClose:()=>void;onSave:(project:Project)=>void}) {
-  const [form,setForm] = useState({...project,coverImage:project.coverImage||'',projectUrl:project.projectUrl||''});
+  const [form,setForm] = useState({...project,coverImage:project.coverImage||'',galleryImages:project.galleryImages?.length?project.galleryImages:(project.coverImage?[project.coverImage]:[]),projectUrl:project.projectUrl||''});
   const [imageError,setImageError] = useState('');
   const update = <K extends keyof Project>(key:K,value:Project[K]) => setForm(current => ({...current,[key]:value}));
 
-  function selectImage(event:ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]; setImageError('');
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return setImageError('Escolha um arquivo de imagem.');
-    if (file.size > 2*1024*1024) return setImageError('A imagem deve ter no máximo 2 MB.');
-    const reader = new FileReader(); reader.onload = () => update('coverImage',String(reader.result||'')); reader.readAsDataURL(file);
+  async function selectImage(event:ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files||[]); setImageError('');
+    if (!files.length) return;
+    const available = 4-(form.galleryImages?.length||0);
+    if (available<=0) return setImageError('O limite de quatro imagens já foi atingido.');
+    const selected=files.slice(0,available);
+    if(selected.some(file=>!file.type.startsWith('image/')))return setImageError('Escolha apenas arquivos de imagem.');
+    if(selected.some(file=>file.size>1024*1024))return setImageError('Cada imagem deve ter no máximo 1 MB.');
+    const images=await Promise.all(selected.map(file=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=reject;reader.readAsDataURL(file)})));
+    setForm(current=>({...current,galleryImages:[...(current.galleryImages||[]),...images].slice(0,4),coverImage:(current.galleryImages?.[0]||images[0]||current.coverImage)}));
+    event.target.value='';
   }
 
   return <div className="editor-backdrop"><form className="project-editor" onSubmit={e=>{e.preventDefault();onSave(form)}}><header><div><span className="kicker">Editor de projeto</span><h2>{project.name||'Novo projeto'}</h2></div><button type="button" className="icon-button" aria-label="Fechar" onClick={onClose}><X/></button></header><div className="editor-grid">
     <label>Nome<input value={form.name} onChange={e=>{update('name',e.target.value);if(!project.slug)update('slug',e.target.value)}} required/></label>
     <label>Endereço (slug)<input value={form.slug} onChange={e=>update('slug',e.target.value)} required/></label>
     <label className="wide">Link público do projeto<input type="url" value={form.projectUrl} onChange={e=>update('projectUrl',e.target.value)} placeholder="https://meuprojeto.com.br"/></label>
-    <label className="wide">Imagem de capa por endereço<input type="url" value={form.coverImage} onChange={e=>update('coverImage',e.target.value)} placeholder="https://.../imagem.jpg"/></label>
-    <label className="wide project-image-upload">Ou escolha uma imagem do computador<input type="file" accept="image/*" onChange={selectImage}/><small>JPG, PNG ou WebP, até 2 MB.</small>{imageError&&<span className="form-error">{imageError}</span>}{form.coverImage&&<span className="project-image-preview"><img src={form.coverImage} alt="Prévia da capa"/><button type="button" className="button button-ghost button-small" onClick={()=>update('coverImage','')}>Remover imagem</button></span>}</label>
+    <label className="wide project-image-upload">Imagens do sistema<input type="file" accept="image/*" multiple onChange={selectImage} disabled={(form.galleryImages?.length||0)>=4}/><small>Selecione até 4 imagens. A primeira será a capa. JPG, PNG ou WebP, até 1 MB cada.</small>{imageError&&<span className="form-error">{imageError}</span>}{Boolean(form.galleryImages?.length)&&<span className="project-image-preview-grid">{form.galleryImages?.map((image,index)=><span className="project-image-preview" key={`${image.slice(0,30)}-${index}`}><img src={image} alt={`Imagem ${index+1} do projeto`}/><b>{index===0?'Capa':`Imagem ${index+1}`}</b><button type="button" className="button button-ghost button-small" onClick={()=>setForm(current=>{const galleryImages=(current.galleryImages||[]).filter((_,itemIndex)=>itemIndex!==index);return {...current,galleryImages,coverImage:galleryImages[0]||''}})}>Remover</button></span>)}</span>}</label>
     <label className="wide">Chamada curta<input value={form.eyebrow} onChange={e=>update('eyebrow',e.target.value)} required/></label>
     <label className="wide">Resumo<textarea rows={3} value={form.summary} onChange={e=>update('summary',e.target.value)} required/></label>
     {(['problem','idea','solution','result'] as const).map(key=><label className="wide" key={key}>{({problem:'Problema',idea:'Ideia',solution:'Solução',result:'Resultado'})[key]}<textarea rows={3} value={form[key]} onChange={e=>update(key,e.target.value)} required/></label>)}
