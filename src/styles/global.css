@@ -299,6 +299,56 @@ h3,.button,.nav{font-weight:600}
 footer .brand-logo-wrap{width:145px;height:58px;border-color:transparent;background:transparent}
 footer .brand-logo{opacity:.78}
 
+/* Escala tipográfica unificada em todas as rotas */
+body{font-size:16px;line-height:1.65}
+.kicker{font-size:.78rem;line-height:1.35;letter-spacing:.12em;margin-bottom:.75rem}
+h1{font-size:clamp(2.6rem,4.2vw,4.25rem);line-height:1.04}
+h2{font-size:clamp(2rem,3vw,3rem);line-height:1.08}
+h3{font-size:1.2rem;line-height:1.2}
+p{font-size:1rem}
+.hero-copy h1{font-size:clamp(3rem,4.5vw,4.6rem);line-height:1.02}
+.hero-copy>p,.page-hero>p,.case-hero p,.contact-intro>p{font-size:1.05rem;line-height:1.7}
+.page-hero h1{font-size:clamp(2.8rem,4vw,4rem);line-height:1.04}
+.section-head h2{font-size:clamp(2.15rem,3.1vw,3.1rem);line-height:1.08}
+.section-head p{font-size:1rem}
+.service-card h3{font-size:1.18rem}.service-card p{font-size:.88rem}
+.project-card h3{font-size:1.4rem}.project-card p{font-size:.9rem}
+.case-hero h1{font-size:clamp(3rem,4.6vw,4.7rem);line-height:1.02}
+.case-story>div{grid-template-columns:64px minmax(0,820px);gap:2.5rem}
+.case-story .story-index{width:40px;height:40px;padding:0;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:8px;background:color-mix(in srgb,var(--accent) 7%,var(--surface));color:var(--accent);font-family:Sora,Inter,sans-serif;font-size:.88rem;font-weight:700}
+.case-story .kicker{font-size:.8rem}
+.case-story h2{font-size:clamp(2.05rem,2.7vw,2.8rem);line-height:1.08;margin-bottom:.9rem}
+.case-story p{font-size:1.06rem;line-height:1.7}
+.case-grid h2,.gallery h2,.project-home h2{font-size:clamp(2rem,2.8vw,2.8rem)}
+.solution-list article h2{font-size:clamp(1.7rem,2.2vw,2.25rem)}
+.solution-list article p{font-size:.95rem}.solution-number{font-size:.85rem;font-weight:700}
+.about-hero h1,.contact-intro h1{font-size:clamp(2.8rem,4vw,4rem)}
+.lead{font-size:clamp(1.25rem,1.65vw,1.6rem);line-height:1.5}
+.founder h2,.founder-teaser h2{font-size:clamp(2.1rem,3vw,3rem)}
+.value-grid h3{font-size:1.15rem}.value-grid p{font-size:.92rem}
+.cta h2{font-size:clamp(2.1rem,3vw,3rem)}.cta p{font-size:1rem}
+.admin-heading h1{font-size:clamp(2.6rem,4vw,4rem)}
+.admin-auth-card h1{font-size:clamp(2.1rem,3.5vw,3rem)}
+.portal-heading h1{font-size:clamp(2rem,2.7vw,2.8rem)}
+.portal-heading .kicker{font-size:.85rem}
+.client-systems-head .kicker{font-size:clamp(1.45rem,2vw,1.9rem)}
+.portal-card h2{font-size:1.55rem}
+
+@media(max-width:700px){
+  body{font-size:15px}
+  .kicker{font-size:.72rem}
+  .hero-copy h1{font-size:clamp(2.45rem,11vw,3.35rem)}
+  .page-hero h1{font-size:clamp(2.3rem,10vw,3.15rem)}
+  .section-head h2{font-size:clamp(2rem,9vw,2.7rem)}
+  .case-hero h1{font-size:clamp(2.6rem,12vw,3.6rem)}
+  .case-story>div{grid-template-columns:1fr;gap:.9rem}
+  .case-story .story-index{width:36px;height:36px;font-size:.8rem}
+  .case-story h2{font-size:clamp(1.9rem,8.5vw,2.5rem)}
+  .case-story p{font-size:1rem}
+  .about-hero h1,.contact-intro h1{font-size:clamp(2.35rem,10vw,3.2rem)}
+  .portal-heading h1{font-size:clamp(1.8rem,7.5vw,2.3rem)}
+}
+
 /* Imagens e página pública dos projetos */
 .project-visual.has-cover{padding:0;background:#07111e}
 .project-visual.has-cover img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
