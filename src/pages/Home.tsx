@@ -46,7 +46,7 @@ export function Home() {
         <div className="system-glow"/>
         <div className="system-panel">
           <div className="system-panel-head">
-            <div className="system-identity"><span>ACS</span><small>Visão operacional</small></div>
+            <div className="system-identity"><span>Painel</span><small>Visão operacional</small></div>
             <span className="system-live"><i/> Sistema ativo</span>
           </div>
           <div className="system-metric">
@@ -81,7 +81,7 @@ export function Home() {
     </section>
     <section className="section founder-teaser">
       <Reveal><div><span className="kicker">Visão de negócio + execução técnica</span><h2>A ACS entende processos antes de escrever código.</h2><p>A experiência de Anderson Costa e Silva em administração e operações orienta uma abordagem prática: tecnologia só faz sentido quando melhora o trabalho de verdade.</p><Link className="text-link" to="/sobre">Conheça a história da ACS <ArrowRight size={16}/></Link></div></Reveal>
-      <div className="founder-mark"><span>ACS</span><small><b>Anderson Costa e Silva</b><br/>As iniciais que dão nome à empresa.<br/>Fundador e responsável técnico.</small></div>
+      <div className="founder-mark"><span>Anderson</span><small><b>Anderson Costa e Silva</b><br/>Fundador e responsável técnico.<br/>Tecnologia, processos e gestão.</small></div>
     </section>
     <section className="section"><CTA/></section>
   </>;
