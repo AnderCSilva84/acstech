@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './styles/global.css';
+import './styles/portfolio.css';
 
 // Se um deploy trocar os nomes dos bundles enquanto uma aba está aberta,
 // recarrega uma única vez para buscar o HTML da versão atual.
