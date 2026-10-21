@@ -4,12 +4,13 @@ import { authenticate,json,listJSON,store,type Charge,type Client,type ServiceRe
 export default async(req:Request)=>{
   const user=await authenticate(req); if(!user)return json({error:'Sessão inválida.'},401);
   if(req.method==='GET'){
-    const [charges,requests,client]=await Promise.all([
+    const [charges,requests,client,payments]=await Promise.all([
       listJSON<Charge>(`charges/${user.sub}/`),
       listJSON<ServiceRequest>(`requests/${user.sub}/`),
       store.get(`clients/id-${user.sub}`,{type:'json'}) as Promise<Client|null>,
+      listJSON<{id:string;clientId:string;paidAt:string}>(`payments/${user.sub}/`),
     ]);
-    return json({client:{id:user.sub,name:client?.name||user.name,personType:client?.personType||'pf',establishments:client?.establishments||[]},charges:charges.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),requests:requests.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))});
+    return json({payments,client:{id:user.sub,name:client?.name||user.name,personType:client?.personType||'pf',establishments:client?.establishments||[]},charges:charges.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),requests:requests.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))});
   }
   if(req.method==='POST'){
     const {title,details}=await req.json(); if(!title||!details)return json({error:'Preencha o assunto e a descrição.'},400);

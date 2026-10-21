@@ -26,6 +26,7 @@ type Client = {
   phone: string;
   personType: "pf" | "pj";
   document: string;
+  email?: string;
   establishments: Establishment[];
   active: boolean;
 };
@@ -167,6 +168,7 @@ export default function AdminClients() {
             personType,
             name: form.get("name"),
             document: form.get("document"),
+            email: form.get("email"),
             phone: form.get("phone"),
             pin: form.get("pin"),
             establishments: personType === "pj" ? places : [],
@@ -218,9 +220,32 @@ export default function AdminClients() {
     setMessage("Cliente atualizado.");
     await load();
   }
-  async function classify(charge:Charge,category:string){
-    setError('');
-    try{const response=await fetch('/api/portal/admin',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action:'charge-category',clientId:charge.clientId,chargeId:charge.id,category})});const result=await response.json();if(!response.ok){setError(result.error||'Não foi possível classificar.');return}await load();setMessage('Classificação atualizada.');}catch{setError('Não foi possível confirmar a classificação. Atualize para conferir.');}
+  async function classify(charge: Charge, category: string) {
+    setError("");
+    try {
+      const response = await fetch("/api/portal/admin", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "charge-category",
+          clientId: charge.clientId,
+          chargeId: charge.id,
+          category,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.error || "Não foi possível classificar.");
+        return;
+      }
+      await load();
+      setMessage("Classificação atualizada.");
+    } catch {
+      setError(
+        "Não foi possível confirmar a classificação. Atualize para conferir.",
+      );
+    }
   }
   async function remove(
     type: "client" | "charge" | "request",
@@ -367,6 +392,10 @@ export default function AdminClients() {
                 <label>
                   {personType === "pf" ? "CPF" : "CNPJ"}
                   <input name="document" inputMode="numeric" required />
+                </label>
+                <label>
+                  E-mail
+                  <input name="email" type="email" />
                 </label>
                 <label>
                   Telefone com DDD
@@ -583,7 +612,7 @@ export default function AdminClients() {
               setError("");
               setSettling(charge);
             }}
-            onCategory={(charge,category)=>void classify(charge,category)}
+            onCategory={(charge, category) => void classify(charge, category)}
             onRemove={(charge) =>
               void remove("charge", charge.id, charge.clientId)
             }
@@ -784,6 +813,14 @@ function ClientEditor({
               value={form.document}
               onChange={(e) => setForm({ ...form, document: e.target.value })}
               required
+            />
+          </label>
+          <label>
+            E-mail
+            <input
+              type="email"
+              value={form.email || ""}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </label>
           <label>

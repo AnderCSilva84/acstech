@@ -1,3 +1,4 @@
+import {validEmail} from './_shared/notices';
 import type { Config } from '@netlify/functions';
 import { adminAllowed,hashPin,json,listJSON,normalizePhone,store,type Charge,type Client } from './_shared/core';
 
@@ -8,7 +9,7 @@ export default async(req:Request)=>{
     const charges=await listJSON<Charge>('charges/');
     const payments=await listJSON('payments/');
     const requests=await listJSON<{id:string;clientId:string;title:string;details:string;status:string;createdAt:string}>('requests/');
-    return json({clients:records.map(client=>({id:client.id,name:client.name,phone:client.phone,personType:client.personType,document:client.document,establishments:client.establishments||[],active:client.active})),charges,payments,requests});
+    return json({clients:records.map(client=>({id:client.id,name:client.name,email:client.email||'',phone:client.phone,personType:client.personType,document:client.document,establishments:client.establishments||[],active:client.active})),charges,payments,requests});
   }
   if(req.method==='DELETE') {
     const body=await req.json();
@@ -67,7 +68,9 @@ export default async(req:Request)=>{
     if(personType==='pj'&&!establishments.length) return json({error:'Cadastre pelo menos um estabelecimento da empresa.'},400);
     const id=body.id||crypto.randomUUID(); const salt=body.pin||!existing?crypto.randomUUID():existing.salt;
     const pinHash=body.pin||!existing?await hashPin(body.pin,salt):existing.pinHash;
-    const client:Client={id,name:String(body.name).trim(),phone,personType,document,establishments,pinHash,salt,active:true};
+    const email=String(body.email??existing?.email??'').trim();
+    if(email&&!validEmail(email))return json({error:'Informe um e-mail válido.'},400);
+    const client:Client={id,email,name:String(body.name).trim(),phone,personType,document,establishments,pinHash,salt,active:true};
     if(existing&&existing.phone!==phone)await store.delete(`clients/phone-${existing.phone}`);
     await Promise.all([store.setJSON(`clients/phone-${phone}`,client),store.setJSON(`clients/id-${id}`,client)]);
     return json({id,name:client.name,phone,personType,document,establishments},201);
