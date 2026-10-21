@@ -6,8 +6,9 @@ export default async(req:Request)=>{
   if(req.method==='GET') {
     const records=await listJSON<Client>('clients/id-');
     const charges=await listJSON<Charge>('charges/');
+    const payments=await listJSON('payments/');
     const requests=await listJSON<{id:string;clientId:string;title:string;details:string;status:string;createdAt:string}>('requests/');
-    return json({clients:records.map(client=>({id:client.id,name:client.name,phone:client.phone,personType:client.personType,document:client.document,establishments:client.establishments||[],active:client.active})),charges,requests});
+    return json({clients:records.map(client=>({id:client.id,name:client.name,phone:client.phone,personType:client.personType,document:client.document,establishments:client.establishments||[],active:client.active})),charges,payments,requests});
   }
   if(req.method==='DELETE') {
     const body=await req.json();
@@ -25,6 +26,14 @@ export default async(req:Request)=>{
   }
   if(req.method!=='POST') return json({error:'Método não permitido'},405);
   const body=await req.json();
+  if(body.action==='charge-category') {
+    if(typeof body.clientId!=='string'||typeof body.chargeId!=='string'||!body.clientId||!body.chargeId||/[\\/]/.test(body.clientId+body.chargeId)||!['','product','service'].includes(body.category))return json({error:'Classificação inválida.'},400);
+    const key=`charges/${body.clientId}/${body.chargeId}`;
+    const charge=await store.get(key,{type:'json'}) as Charge|null;
+    if(!charge||charge.clientId!==body.clientId)return json({error:'Cobrança não encontrada.'},404);
+    await store.setJSON(key,{...charge,category:body.category||undefined});
+    return json({ok:true});
+  }
   if(body.action==='payment') {
     const {clientId,chargeId}=body;
     if(typeof clientId!=='string'||typeof chargeId!=='string'||!clientId||!chargeId||/[\\/]/.test(clientId+chargeId)) return json({error:'Selecione uma cobrança válida.'},400);
@@ -65,7 +74,7 @@ export default async(req:Request)=>{
   }
   if(body.action==='charge') {
     if(!body.clientId||!body.description||Number(body.amount)<=0||!body.dueDate) return json({error:'Preencha todos os dados da cobrança.'},400);
-    const charge:Charge={id:crypto.randomUUID(),clientId:body.clientId,description:String(body.description),amount:Math.round(Number(body.amount)*100),dueDate:body.dueDate,status:'pending',createdAt:new Date().toISOString()};
+    const charge:Charge={id:crypto.randomUUID(),clientId:body.clientId,description:String(body.description),amount:Math.round(Number(body.amount)*100),dueDate:body.dueDate,...(['product','service'].includes(body.category)?{category:body.category}:{}),status:'pending',createdAt:new Date().toISOString()};
     await Promise.all([store.setJSON(`charges/${charge.clientId}/${charge.id}`,charge),store.setJSON(`charge-index/${charge.id}`,{clientId:charge.clientId})]);
     return json(charge,201);
   }
