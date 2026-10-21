@@ -1,3 +1,4 @@
+import { ReceiptShare } from "./ReceiptShare";
 import { useState } from "react";
 import { ArrowLeft, CheckCircle2, ExternalLink, Trash2 } from "lucide-react";
 
@@ -5,6 +6,7 @@ export type ProfileClient = {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   document: string;
   establishments: { id: string; name: string; system: string; url: string }[];
 };
@@ -80,7 +82,10 @@ export function ClientFinancialProfile({
   const received = payments.filter((p) => p.clientId === client.id);
   const services = requests
     .filter((r) => r.clientId === client.id)
-    .sort((a, b) => (order==='desc'?-1:1)*a.createdAt.localeCompare(b.createdAt));
+    .sort(
+      (a, b) =>
+        (order === "desc" ? -1 : 1) * a.createdAt.localeCompare(b.createdAt),
+    );
   const pending = mine.filter((c) => c.status !== "paid");
   const paid = mine.filter((c) => c.status === "paid");
   const totalReceived =
@@ -268,6 +273,15 @@ export function ClientFinancialProfile({
                 >
                   Abrir comprovante
                 </a>
+                <ReceiptShare
+                  clientId={client.id}
+                  {...(item.key.startsWith("p-")
+                    ? { id: item.key.slice(2) }
+                    : { chargeId: item.key.slice(2) })}
+                  phone={client.phone}
+                  email={client.email}
+                  description={item.description}
+                />
               </article>
             ))}
             {!receipts.length && (
@@ -307,7 +321,20 @@ export function ClientFinancialProfile({
                   </span>
                 </div>
                 <strong>{money(c.amount)}</strong>
-                {onCategory&&<label>Tipo de lançamento<select aria-label={`Tipo de lançamento: ${c.description}`} value={c.category||''} onChange={e=>onCategory(c,e.target.value)}><option value="">Sem categoria</option><option value="product">Produto / sistema</option><option value="service">Serviço</option></select></label>}
+                {onCategory && (
+                  <label>
+                    Tipo de lançamento
+                    <select
+                      aria-label={`Tipo de lançamento: ${c.description}`}
+                      value={c.category || ""}
+                      onChange={(e) => onCategory(c, e.target.value)}
+                    >
+                      <option value="">Sem categoria</option>
+                      <option value="product">Produto / sistema</option>
+                      <option value="service">Serviço</option>
+                    </select>
+                  </label>
+                )}
                 <div className="profile-actions">
                   {c.status !== "paid" ? (
                     <button

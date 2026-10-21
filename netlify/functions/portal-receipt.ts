@@ -1,12 +1,14 @@
 import type { Config } from "@netlify/functions";
 import {
   adminAllowed,
+  authenticate,
   json,
   listJSON,
   store,
   type Charge,
   type Client,
 } from "./_shared/core";
+import { readReceiptLink } from "./_shared/receipt-links";
 type Payment = {
   id: string;
   clientId: string;
@@ -25,13 +27,18 @@ const escape = (v: unknown) =>
       ]!,
   );
 export default async (req: Request) => {
-  if (!(await adminAllowed(req))) return json({ error: "Acesso negado." }, 401);
   if (req.method !== "GET")
     return json({ error: "Método não permitido." }, 405);
   const params = new URL(req.url).searchParams;
-  const clientId = params.get("clientId");
-  const id = params.get("id");
-  const chargeId = params.get("chargeId");
+  const shared = await readReceiptLink(params.get("share") || "");
+  const admin = await adminAllowed(req);
+  const user = admin || shared ? null : await authenticate(req);
+  if (!admin && !user && !shared) return json({ error: "Acesso negado." }, 401);
+  const clientId =
+    shared?.clientId || (admin ? params.get("clientId") : user?.sub);
+  const id = shared?.id || (!shared ? params.get("id") : null);
+  const chargeId =
+    shared?.chargeId || (!shared ? params.get("chargeId") : null);
   if (
     !clientId ||
     (!id && !chargeId) ||
