@@ -1,0 +1,20 @@
+import {it,expect,vi} from 'vitest';
+import {render,screen,within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {MemoryRouter} from 'react-router-dom';
+import AdminClients from './AdminClients';
+it('registra a baixa vinculada e remove o botão após atualizar',async()=>{
+ const charge={id:'q1',clientId:'c1',description:'Mensalidade',amount:10000,dueDate:'2026-10-20',status:'pending'};
+ const fetchMock=vi.fn(async(_url:unknown,options?:RequestInit)=>{if(options?.method==='POST'){charge.status='paid';return new Response('{}',{status:201});}return new Response(JSON.stringify({clients:[{id:'c1',name:'Ana',phone:'11999999999',personType:'pf',establishments:[]}],charges:[charge]}));});
+ vi.stubGlobal('fetch',fetchMock);
+ render(<MemoryRouter><AdminClients/></MemoryRouter>);
+ await userEvent.click(await screen.findByRole('button',{name:'Dar baixa'}));
+ const dialog=screen.getByRole('dialog');
+ await userEvent.selectOptions(within(dialog).getByLabelText('Forma de pagamento'),'PIX');
+ await userEvent.click(within(dialog).getByRole('button',{name:'Confirmar baixa'}));
+ expect(await screen.findByText('Pagamento registrado e cobrança baixada.')).toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Dar baixa'})).not.toBeInTheDocument();
+ const call=fetchMock.mock.calls.find(call=>call[1]?.method==='POST');
+ expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({action:'payment',clientId:'c1',chargeId:'q1',method:'PIX'});
+ vi.unstubAllGlobals();
+});

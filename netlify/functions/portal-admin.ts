@@ -25,6 +25,26 @@ export default async(req:Request)=>{
   }
   if(req.method!=='POST') return json({error:'Método não permitido'},405);
   const body=await req.json();
+  if(body.action==='payment') {
+    const {clientId,chargeId}=body;
+    if(typeof clientId!=='string'||typeof chargeId!=='string'||!clientId||!chargeId||/[\\/]/.test(clientId+chargeId)) return json({error:'Selecione uma cobrança válida.'},400);
+    const client=await store.get(`clients/id-${clientId}`,{type:'json'}) as Client|null;
+    const charge=await store.get(`charges/${clientId}/${chargeId}`,{type:'json'}) as Charge|null;
+    if(!client||!charge||charge.clientId!==clientId)return json({error:'Cliente ou cobrança não encontrado.'},404);
+    const key=`payments/${clientId}/manual-${chargeId}`;
+    const previous=await store.get(key,{type:'json'}) as {paidAt:string;method:string}|null;
+    if(previous){await store.setJSON(`charges/${clientId}/${chargeId}`,{...charge,status:'paid',paidAt:previous.paidAt,captureMethod:previous.method});return json({ok:true});}
+    if(charge.status==='paid')return json({error:'Esta cobrança já está paga.'},409);
+    const paidAt=String(body.paidAt||'');
+    const date=new Date(`${paidAt}T12:00:00Z`);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(paidAt)||!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==paidAt)return json({error:'Informe uma data de pagamento válida.'},400);
+    if(!['PIX','Dinheiro','Transferência','Cartão','Outro'].includes(body.method))return json({error:'Informe a forma de pagamento.'},400);
+    if(!Number.isSafeInteger(charge.amount)||charge.amount<=0)return json({error:'O valor da cobrança é inválido.'},400);
+    const payment={id:`manual-${chargeId}`,clientId,chargeId,description:charge.description,amount:charge.amount,paidAt,method:body.method,createdAt:new Date().toISOString()};
+    await store.setJSON(key,payment);
+    await store.setJSON(`charges/${clientId}/${chargeId}`,{...charge,status:'paid',paidAt,captureMethod:body.method});
+    return json(payment,201);
+  }
   if(body.action==='client') {
     const phone=normalizePhone(body.phone||'');
     const document=normalizePhone(body.document||''); const personType=body.personType==='pj'?'pj':'pf';
