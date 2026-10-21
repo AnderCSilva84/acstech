@@ -8,6 +8,7 @@ it('registra a baixa vinculada e remove o botão após atualizar',async()=>{
  const fetchMock=vi.fn(async(_url:unknown,options?:RequestInit)=>{if(options?.method==='POST'){charge.status='paid';return new Response('{}',{status:201});}return new Response(JSON.stringify({clients:[{id:'c1',name:'Ana',phone:'11999999999',personType:'pf',establishments:[]}],charges:[charge]}));});
  vi.stubGlobal('fetch',fetchMock);
  render(<MemoryRouter><AdminClients/></MemoryRouter>);
+ await userEvent.click(await screen.findByRole('button',{name:'Abrir ficha de Ana'}));
  await userEvent.click(await screen.findByRole('button',{name:'Dar baixa'}));
  const dialog=screen.getByRole('dialog');
  await userEvent.selectOptions(within(dialog).getByLabelText('Forma de pagamento'),'PIX');
