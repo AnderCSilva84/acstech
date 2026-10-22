@@ -31,29 +31,63 @@ export async function sendEmail(
   if (!emailConfigured() || !client.active || !validEmail(client.email))
     return false;
   if (await store.get(`email-sent/${key}`, { type: "json" })) return true;
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    signal: AbortSignal.timeout(5000),
-    headers: {
-      Authorization: `Bearer ${Netlify.env.get("RESEND_API_KEY")}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": key,
-    },
-    body: JSON.stringify({
-      from: Netlify.env.get("CONTACT_FROM_EMAIL"),
-      to: [client.email],
-      subject,
-      text: `Olá, ${client.name}.\n\n${message}\n\n${url}\n\nACS Tecnologia`,
-    }),
-  });
-  if (!response.ok) return false;
-  const result = (await response.json()) as { id?: string };
-  if (!result.id) return false;
-  await store.setJSON(`email-sent/${key}`, {
+  const attemptKey = `email-attempts/${client.id}/${key}`;
+  const attempt = {
     clientId: client.id,
-    providerId: result.id,
     subject,
-    acceptedAt: new Date().toISOString(),
-  });
-  return true;
+    attemptedAt: new Date().toISOString(),
+  };
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      signal: AbortSignal.timeout(5000),
+      headers: {
+        Authorization: `Bearer ${Netlify.env.get("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": key,
+      },
+      body: JSON.stringify({
+        from: Netlify.env.get("CONTACT_FROM_EMAIL"),
+        to: [client.email],
+        subject,
+        text: `Olá, ${client.name}.\n\n${message}\n\n${url}\n\nACS Tecnologia`,
+      }),
+    });
+    if (!response.ok) {
+      await store.setJSON(attemptKey, {
+        ...attempt,
+        status: "failed",
+        reason: `O provedor recusou o envio (HTTP ${response.status}).`,
+      });
+      return false;
+    }
+    const result = (await response.json()) as { id?: string };
+    if (!result.id) {
+      await store.setJSON(attemptKey, {
+        ...attempt,
+        status: "failed",
+        reason: "O provedor não retornou um identificador.",
+      });
+      return false;
+    }
+    await store.setJSON(`email-sent/${key}`, {
+      clientId: client.id,
+      providerId: result.id,
+      subject,
+      acceptedAt: new Date().toISOString(),
+    });
+    await store.setJSON(attemptKey, {
+      ...attempt,
+      status: "accepted",
+      providerId: result.id,
+    });
+    return true;
+  } catch {
+    await store.setJSON(attemptKey, {
+      ...attempt,
+      status: "failed",
+      reason: "Falha de conexão ou tempo esgotado. Confira antes de repetir.",
+    });
+    return false;
+  }
 }
