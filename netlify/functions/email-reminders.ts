@@ -7,12 +7,21 @@ import {
   validEmail,
 } from "./_shared/notices";
 export default async () => {
-  if (
-    !emailConfigured() ||
-    Netlify.env.get("EMAIL_NOTIFICATIONS_ENABLED") !== "true" ||
-    Netlify.env.get("PAYMENT_REMINDERS_ENABLED") !== "true"
-  )
+  const configured = emailConfigured();
+  const enabled =
+    configured &&
+    Netlify.env.get("EMAIL_NOTIFICATIONS_ENABLED") === "true" &&
+    Netlify.env.get("PAYMENT_REMINDERS_ENABLED") === "true";
+  if (!enabled) {
+    await store.setJSON("notification-health/latest", {
+      ranAt: new Date().toISOString(),
+      enabled,
+      configured,
+      accepted: 0,
+      reason: "Lembretes desativados ou e-mail não configurado.",
+    });
     return;
+  }
   const started = Date.now();
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Fortaleza",
@@ -22,12 +31,24 @@ export default async () => {
   }).format(new Date());
   const charges = await listJSON<Charge>("charges/");
   let accepted = 0;
+  let failed = 0,
+    missingEmail = 0,
+    eligible = 0,
+    alreadySent = 0,
+    completed = true;
   for (const charge of charges) {
-    if (Date.now() - started > 18000) break;
+    if (Date.now() - started > 18000) {
+      completed = false;
+      break;
+    }
     const stage = reminderStage(charge, today);
     if (!stage) continue;
+    eligible++;
     const key = `reminder-${charge.id}-${charge.dueDate}-${stage}`;
-    if (await store.get(`email-sent/${key}`, { type: "json" })) continue;
+    if (await store.get(`email-sent/${key}`, { type: "json" })) {
+      alreadySent++;
+      continue;
+    }
     const client = (await store.get(`clients/id-${charge.clientId}`, {
       type: "json",
     })) as Client | null;
@@ -38,12 +59,15 @@ export default async () => {
     if (
       !client ||
       !client.active ||
-      !validEmail(client.email) ||
       !current ||
       current.dueDate !== charge.dueDate ||
       reminderStage(current, today) !== stage
     )
       continue;
+    if (!validEmail(client.email)) {
+      missingEmail++;
+      continue;
+    }
     const title =
       stage === "before-2"
         ? "Sua cobrança vence em 2 dias"
@@ -62,11 +86,19 @@ export default async () => {
       )
     )
       accepted++;
+    else failed++;
     await new Promise((resolve) => setTimeout(resolve, 600));
   }
   await store.setJSON("notification-health/latest", {
     ranAt: new Date().toISOString(),
     accepted,
+    failed,
+    missingEmail,
+    eligible,
+    alreadySent,
+    completed,
+    configured,
+    enabled,
   });
 };
 export const config: Config = { schedule: "0 * * * *" };

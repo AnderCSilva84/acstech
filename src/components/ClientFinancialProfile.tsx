@@ -1,4 +1,5 @@
 import { ReceiptShare } from "./ReceiptShare";
+import { PaymentReminders } from "./PaymentReminders";
 import { useState } from "react";
 import { ArrowLeft, CheckCircle2, ExternalLink, Trash2 } from "lucide-react";
 
@@ -151,6 +152,7 @@ export function ClientFinancialProfile({
           </p>
         </div>
         <div className="profile-actions">
+          <PaymentReminders clientId={client.id} clientName={client.name} />
           <button className="button button-ghost" onClick={onEdit}>
             Editar cadastro
           </button>
